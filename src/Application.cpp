@@ -13,7 +13,7 @@ CApplication::CApplication(HINSTANCE hInstance)
 CApplication::~CApplication()
 {
 }
-
+//
 void CApplication::ParseCmdLine(LPSTR lpCmdLine)
 {
 	LPSTR lpArgument = strtok(lpCmdLine," ");
