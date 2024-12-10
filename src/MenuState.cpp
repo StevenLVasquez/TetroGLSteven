@@ -16,10 +16,10 @@ CMenuState::CMenuState(CStateManager* pManager)
 	int screenHeight = 1080;
 
 	// Crear las imágenes del menú
-	m_pBackgroundImg = CImage::CreateImage("bin/Fondotetrisinicio.jpg", TRectanglei(0, screenHeight, 0, screenWidth));
-	m_pTitleImg = CImage::CreateImage("bin/Logotetris.png", TRectanglei(0, 300, 0, 500));
-	m_pItemBckgndNormal = CImage::CreateImage("bin/MenuItems.png", TRectanglei(0, 57, 0, 382));
-	m_pItemBckgndSelected = CImage::CreateImage("bin/MenuItems.png", TRectanglei(58, 114, 0, 382));
+	m_pBackgroundImg = CImage::CreateImage("Logotetris.png", TRectanglei(0, screenHeight, 0, screenWidth));
+	m_pTitleImg = CImage::CreateImage("Logotetris.png", TRectanglei(0, 300, 0, 500));
+	m_pItemBckgndNormal = CImage::CreateImage("MenuItems.png", TRectanglei(0, 57, 0, 382));
+	m_pItemBckgndSelected = CImage::CreateImage("MenuItems.png", TRectanglei(58, 114, 0, 382));
 
 	// Crear los textos para cada opción del menú
 	m_pNewGameText = new CTextControl(m_pFont, TRectanglei(150, 207, 209, 591));
