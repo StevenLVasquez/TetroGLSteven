@@ -32,6 +32,10 @@ public:
 	void Update(DWORD dwCurrentTime);
 	void Draw();
 
+	// INICIO MOD RATON STATEMANAGER.H
+	void OnLButtonDown(int x, int y);
+	// FIN MOD RATON STATEMANAGER.H
+
 private:
 	// Active State of the game (intro, play, ...)
 	CGameState* m_pActiveState;		

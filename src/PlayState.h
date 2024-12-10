@@ -11,6 +11,7 @@ class CPlayState : public CGameState,
 				   public CMatrixEventsListener
 {
 public:
+	virtual void EnterState() override;
 	~CPlayState();
 
 	// Implementation of specific events
@@ -33,6 +34,10 @@ protected:
 	CPlayState(CStateManager* pManager);
 
 private:
+
+	DWORD m_dwStartTime;    // Tiempo de inicio de la partida
+	DWORD m_dwElapsedTime;  // Tiempo transcurrido en milisegundos
+
 	// The blocks matrix class
 	CBlocksMatrix* m_pMatrix;
 	// The font used to draw text

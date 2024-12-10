@@ -5,6 +5,7 @@
 #include "GL/gl.h"
 #include "StateManager.h"
 
+
 // The main window class. It wraps the HANDLE of the window and initializes the 
 // openGL rendering context. It is also in charge of processing the different
 // event messages.
@@ -35,6 +36,7 @@ private:
 	// Processes the messages that were received in OnEvent.
 	void ProcessEvent(UINT Message, WPARAM wParam, LPARAM lParam);
 
+	void OnLButtonDown(int x, int y);
 	// The window handle
 	HWND	m_hWindow;
 	// The window device context

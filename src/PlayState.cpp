@@ -7,29 +7,29 @@
 using namespace std;
 
 CPlayState::CPlayState(CStateManager* pManager)
- : CGameState(pManager), m_pMatrix(NULL), m_pFont(NULL), 
-   m_pComboControl(NULL), m_pScoreControl(NULL), 
-   m_pLevelControl(NULL), m_pLinesControl(NULL),
-   m_iTotalLines(0), m_iCurrentLevel(0), m_ulCurrentScore(0), 
-   m_bGameOver(false)
+	: CGameState(pManager), m_pMatrix(NULL), m_pFont(NULL),
+	m_pComboControl(NULL), m_pScoreControl(NULL),
+	m_pLevelControl(NULL), m_pLinesControl(NULL),
+	m_iTotalLines(0), m_iCurrentLevel(0), m_ulCurrentScore(0),
+	m_bGameOver(false)
 {
 	AddFontResource("01 Digitall.ttf");
-	m_pMatrix = new CBlocksMatrix(this,280,34);
+	m_pMatrix = new CBlocksMatrix(this, 280, 34);
 	m_pFont = new CGameFont;
 	m_pFont->CreateFont("01 Digitall", 20, FW_NORMAL);
 
-	m_pComboControl = new CComboControl(TRectanglei(330,450,50,235),m_pFont);
-	m_pScoreControl = new CTextControl(m_pFont,TRectanglei(145,210,620,730));
+	m_pComboControl = new CComboControl(TRectanglei(330, 450, 50, 235), m_pFont);
+	m_pScoreControl = new CTextControl(m_pFont, TRectanglei(145, 210, 620, 730));
 	m_pScoreControl->SetAlignement(CTextControl::TACenter);
-	m_pScoreControl->SetTextColor(1.0f,0.588f,0.039f);
-	m_pLinesControl = new CTextControl(m_pFont,TRectanglei(320,385,620,730));
+	m_pScoreControl->SetTextColor(1.0f, 0.588f, 0.039f);
+	m_pLinesControl = new CTextControl(m_pFont, TRectanglei(320, 385, 620, 730));
 	m_pLinesControl->SetAlignement(CTextControl::TACenter);
-	m_pLinesControl->SetTextColor(1.0f,0.588f,0.039f);
-	m_pLevelControl = new CTextControl(m_pFont,TRectanglei(500,565,620,730));
+	m_pLinesControl->SetTextColor(1.0f, 0.588f, 0.039f);
+	m_pLevelControl = new CTextControl(m_pFont, TRectanglei(500, 565, 620, 730));
 	m_pLevelControl->SetAlignement(CTextControl::TACenter);
-	m_pLevelControl->SetTextColor(1.0f,0.588f,0.039f);
+	m_pLevelControl->SetTextColor(1.0f, 0.588f, 0.039f);
 
-	m_pBackgroundImg = CImage::CreateImage("PlayBckgnd.png",TRectanglei(0,600,0,800));
+	m_pBackgroundImg = CImage::CreateImage("PlayBckgnd.png", TRectanglei(0, 600, 0, 800));
 }
 
 CPlayState::~CPlayState()
@@ -54,10 +54,18 @@ CPlayState* CPlayState::GetInstance(CStateManager* pManager)
 	return &Instance;
 }
 
+// INICIO MOD CRONOMETRO ENTERSTATE
+void CPlayState::EnterState()
+{
+	m_dwStartTime = GetTickCount();
+	m_dwElapsedTime = 0;
+}
+// FIN MOD CRONOMETRO ENTERSTATE
+
 void CPlayState::Reset()
 {
 	m_iTotalLines = 0;
-	m_iCurrentLevel = 0; 
+	m_iCurrentLevel = 0;
 	m_ulCurrentScore = 0;
 	m_bGameOver = false;
 	m_pMatrix->Reset();
@@ -73,7 +81,7 @@ void CPlayState::OnKeyDown(WPARAM wKey)
 			m_pMatrix->ShapeRotate();
 		break;
 	case VK_DOWN:
-		if (!m_bGameOver)	
+		if (!m_bGameOver)
 			m_pMatrix->ShapeDown();
 		break;
 	case VK_LEFT:
@@ -90,7 +98,7 @@ void CPlayState::OnKeyDown(WPARAM wKey)
 	case VK_RETURN:
 		if (m_bGameOver)
 		{
-			CHighScoreState* pHighScores = 
+			CHighScoreState* pHighScores =
 				CHighScoreState::GetInstance(m_pStateManager);
 			pHighScores->SetNewHighScore(m_ulCurrentScore);
 			ChangeState(pHighScores);
@@ -100,6 +108,10 @@ void CPlayState::OnKeyDown(WPARAM wKey)
 
 void CPlayState::Update(DWORD dwCurrentTime)
 {
+	// INICIO MOD CRONOMETRO UPDATE
+	m_dwElapsedTime = dwCurrentTime - m_dwStartTime;
+	// FIN MOD CRONOMETRO UPDATE
+
 	if (!m_bGameOver)
 	{
 		m_pMatrix->Update(dwCurrentTime);
@@ -107,9 +119,9 @@ void CPlayState::Update(DWORD dwCurrentTime)
 	}
 }
 
-void CPlayState::Draw()  
-{ 
-	m_pBackgroundImg->BlitImage(0,0);
+void CPlayState::Draw()
+{
+	m_pBackgroundImg->BlitImage(0, 0);
 
 	m_pMatrix->Draw();
 
@@ -128,32 +140,38 @@ void CPlayState::Draw()
 	m_pLevelControl->SetText(ssLevel.str());
 	m_pLevelControl->Draw();
 
+	// INICIO MOD CRONOMETRO DRAW
+	DWORD totalSeconds = m_dwElapsedTime / 1000;
+	DWORD minutes = totalSeconds / 60;
+	DWORD seconds = totalSeconds % 60;
+
+	std::stringstream ssTimer;
+	ssTimer << "Tiempo: " << minutes << "m " << seconds << "s";
+
+	m_pFont->DrawText(ssTimer.str(), 350, 50, 1.0f, 1.0f, 1.0f);
+	// FIN MOD CRONOMETRO DRAW
+
 	if (m_pMatrix->GetNextShape())
-		m_pMatrix->GetNextShape()->DrawOnScreen(TRectanglei(165,220,80,225));
+		m_pMatrix->GetNextShape()->DrawOnScreen(TRectanglei(165, 220, 80, 225));
 
 	m_pComboControl->Draw();
 	if (m_bGameOver)
 	{
-		// In game over, we draw a semi-transparent black screen on top
-		// of the background. This is possible because blending has 
-		// been enabled.
-		glColor4f(0.0,0.0,0.0,0.5);
-		// Disable 2D texturing because we want to draw a non
-		// textured rectangle over the screen.
+		glColor4f(0.0, 0.0, 0.0, 0.5);
 		glDisable(GL_TEXTURE_2D);
 		glBegin(GL_QUADS);
-		glVertex3i(0,0,0);
-		glVertex3i(0,600,0);
-		glVertex3i(800,600,0);
-		glVertex3i(800,0,0);
+		glVertex3i(0, 0, 0);
+		glVertex3i(0, 600, 0);
+		glVertex3i(800, 600, 0);
+		glVertex3i(800, 0, 0);
 		glEnd();
 		glEnable(GL_TEXTURE_2D);
 
-		m_pFont->DrawText("GAME OVER",340,200);
-		m_pFont->DrawText("Press Enter to continue",285,300);
+		m_pFont->DrawText("GAME OVER", 340, 200);
+		m_pFont->DrawText("Press Enter to continue", 285, 300);
 	}
-
 }
+
 
 void CPlayState::OnStartRemoveLines()
 {
@@ -167,20 +185,20 @@ void CPlayState::OnLinesRemoved(int iLinesCount)
 	switch (iLinesCount)
 	{
 	case 1:
-		m_ulCurrentScore += (m_iCurrentLevel+1) * 40 * comboMultiplier;
+		m_ulCurrentScore += (m_iCurrentLevel + 1) * 40 * comboMultiplier;
 		break;
 	case 2:
-		m_ulCurrentScore += (m_iCurrentLevel+1) * 100 * comboMultiplier;
+		m_ulCurrentScore += (m_iCurrentLevel + 1) * 100 * comboMultiplier;
 		break;
 	case 3:
-		m_ulCurrentScore += (m_iCurrentLevel+1) * 300 * comboMultiplier;
+		m_ulCurrentScore += (m_iCurrentLevel + 1) * 300 * comboMultiplier;
 		break;
 	case 4:
-		m_ulCurrentScore += (m_iCurrentLevel+1) * 1200 * comboMultiplier;
+		m_ulCurrentScore += (m_iCurrentLevel + 1) * 1200 * comboMultiplier;
 		break;
 	}
 
-	if (m_iTotalLines/10 > m_iCurrentLevel)
+	if (m_iTotalLines / 10 > m_iCurrentLevel)
 	{
 		m_iCurrentLevel++;
 		int iNewUpdateRate = (int)(m_pMatrix->GetTetradUpdate() * 0.8);

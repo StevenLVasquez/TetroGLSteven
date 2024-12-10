@@ -17,7 +17,7 @@ public:
 	void OnKeyDown(WPARAM wKey);
 	void Draw();
 	void EnterState();
-
+	virtual void OnLButtonDown(int x, int y);
 	static CMenuState* GetInstance(CStateManager* pManager);
 
 protected:
@@ -52,6 +52,13 @@ private:
 	CTextControl* m_pResumeGameText;
 	CTextControl* m_pScoresText;
 	CTextControl* m_pExitText;
+
+	TRectanglei m_rectNewGame;
+	TRectanglei m_rectResumeGame;
+	TRectanglei m_rectScores;
+	TRectanglei m_rectExit;
+
+	bool RectContainsPoint(const TRectanglei& rect, int x, int y);
 };
 
 #endif  // _MENUSTATE_H_

@@ -38,3 +38,9 @@ void CStateManager::Draw()
 	if (m_pActiveState)
 		m_pActiveState->Draw();
 }
+
+void CStateManager::OnLButtonDown(int x, int y)
+{
+	if (m_pActiveState)
+		m_pActiveState->OnLButtonDown(x, y);
+}

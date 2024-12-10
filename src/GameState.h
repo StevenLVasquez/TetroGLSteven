@@ -23,6 +23,10 @@ public:
 	virtual void Update(DWORD )  { }
 	virtual void Draw()  { }
 
+
+	// INICIO MOD RATON GAMESTATE
+	virtual void OnLButtonDown(int x, int y) {}
+	// FIN MOD RATON GAMESTATE
 	// Functions called when the state is entered or left
 	// (transition from/to another state).
 	virtual void EnterState()  { }

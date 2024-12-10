@@ -32,7 +32,7 @@ void CApplication::Run()
 
     MSG Message;
     Message.message = (UINT)~WM_QUIT;
-	DWORD dwNextDeadLine = GetTickCount() + FRAME_TIME;
+	DWORD dwNextDeadLine = GetTickCount64() + FRAME_TIME;
 	DWORD dwSleep = FRAME_TIME;
 	bool bUpdate = false;
 

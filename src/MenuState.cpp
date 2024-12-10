@@ -4,33 +4,53 @@
 #include "StateManager.h"
 #include "Image.h"
 
-
-CMenuState::CMenuState(CStateManager* pManager) 
-  : CGameState(pManager), m_pFont(NULL), m_iCurrentSelection(0), 
-    m_pCurrentGame(NULL)
+CMenuState::CMenuState(CStateManager* pManager)
+	: CGameState(pManager), m_pFont(NULL), m_iCurrentSelection(0),
+	m_pCurrentGame(NULL)
 {
 	m_pFont = new CGameFont;
-	m_pFont->CreateFont("Verdana", 30, FW_NORMAL);
+	m_pFont->CreateFont("Times New Roman", 30, FW_NORMAL);
 
-	// Create the different images
-	m_pBackgroundImg = CImage::CreateImage("bin/MainBackground.png",TRectanglei(0,600,0,800));
-	m_pTitleImg = CImage::CreateImage("bin/MenuTitle.png",TRectanglei(0,600,0,800));
-	m_pItemBckgndNormal = CImage::CreateImage("bin/MenuItems.png",TRectanglei(0,57,0,382));
-	m_pItemBckgndSelected = CImage::CreateImage("bin/MenuItems.png",TRectanglei(58,114,0,382));
+	// Ajustar estas dimensiones según tu pantalla o la imagen de fondo
+	int screenWidth = 1920;
+	int screenHeight = 1080;
 
-	// Create the text controls of the menu.
-	m_pNewGameText = new CTextControl(m_pFont,TRectanglei(150,207,209,591));
+	// Crear las imágenes del menú
+	m_pBackgroundImg = CImage::CreateImage("bin/Fondotetrisinicio.jpg", TRectanglei(0, screenHeight, 0, screenWidth));
+	m_pTitleImg = CImage::CreateImage("bin/Logotetris.png", TRectanglei(0, 300, 0, 500));
+	m_pItemBckgndNormal = CImage::CreateImage("bin/MenuItems.png", TRectanglei(0, 57, 0, 382));
+	m_pItemBckgndSelected = CImage::CreateImage("bin/MenuItems.png", TRectanglei(58, 114, 0, 382));
+
+	// Crear los textos para cada opción del menú
+	m_pNewGameText = new CTextControl(m_pFont, TRectanglei(150, 207, 209, 591));
 	m_pNewGameText->SetAlignement(CTextControl::TACenter);
-	m_pNewGameText->SetText("New game");
-	m_pResumeGameText = new CTextControl(m_pFont,TRectanglei(250,307,209,591));
+	m_pNewGameText->SetText("Jugar");
+
+	m_pResumeGameText = new CTextControl(m_pFont, TRectanglei(250, 307, 209, 591));
 	m_pResumeGameText->SetAlignement(CTextControl::TACenter);
-	m_pResumeGameText->SetText("Resume game");
-	m_pScoresText = new CTextControl(m_pFont,TRectanglei(350,407,209,591));
+	m_pResumeGameText->SetText("Volver al Juego");
+
+	m_pScoresText = new CTextControl(m_pFont, TRectanglei(350, 407, 209, 591));
 	m_pScoresText->SetAlignement(CTextControl::TACenter);
-	m_pScoresText->SetText("High scores");
-	m_pExitText = new CTextControl(m_pFont,TRectanglei(450,507,209,591));
+	m_pScoresText->SetText("Puntuacion");
+
+	m_pExitText = new CTextControl(m_pFont, TRectanglei(450, 507, 209, 591));
 	m_pExitText->SetAlignement(CTextControl::TACenter);
-	m_pExitText->SetText("Exit");
+	m_pExitText->SetText("Salir Del Juego");
+
+	// Ahora definimos los rectángulos para detectar el clic del ratón.
+	// Observando el Draw(): los ítems se dibujan a partir de x=209 y y=150, con incrementos de 100 en Y.
+	// Suponiendo que el ancho del ítem es 382 y la altura es 57 (según las coords en el TRectanglei de las imágenes):
+
+	int itemWidth = 382;
+	int itemHeight = 57;
+	int startX = 209;
+	int startY = 150;
+
+	m_rectNewGame = TRectanglei(startY, startY + itemHeight, startX, startX + itemWidth);      // Jugar (150, 150+57, 209, 209+382)
+	m_rectResumeGame = TRectanglei(startY + 100, startY + 100 + itemHeight, startX, startX + itemWidth); // Volver al Juego (250, 250+57, 209, 209+382)
+	m_rectScores = TRectanglei(startY + 200, startY + 200 + itemHeight, startX, startX + itemWidth); // Puntuacion (350, 350+57, 209, 209+382)
+	m_rectExit = TRectanglei(startY + 300, startY + 300 + itemHeight, startX, startX + itemWidth); // Salir (450, 450+57, 209, 209+382)
 }
 
 CMenuState::~CMenuState()
@@ -59,46 +79,71 @@ void CMenuState::OnKeyDown(WPARAM wKey)
 	}
 }
 
+void CMenuState::OnLButtonDown(int x, int y)
+{
+	if (RectContainsPoint(m_rectNewGame, x, y))
+	{
+		m_iCurrentSelection = 0;
+		SelectionChosen();
+	}
+	else if (RectContainsPoint(m_rectResumeGame, x, y))
+	{
+		m_iCurrentSelection = 1;
+		SelectionChosen();
+	}
+	else if (RectContainsPoint(m_rectScores, x, y))
+	{
+		m_iCurrentSelection = 2;
+		SelectionChosen();
+	}
+	else if (RectContainsPoint(m_rectExit, x, y))
+	{
+		m_iCurrentSelection = 3;
+		SelectionChosen();
+	}
+}
+
+bool CMenuState::RectContainsPoint(const TRectanglei& rect, int x, int y)
+{
+	return (x >= rect.m_Left && x <= rect.m_Right && y >= rect.m_Top && y <= rect.m_Bottom);
+}
 
 void CMenuState::Draw()
 {
 	m_pBackgroundImg->BlitImage();
 	m_pTitleImg->BlitImage();
-	// Draw the menu item backgrounds
-	for (int i=0;i<4;i++)
+	// Dibujar los items del menú
+	for (int i = 0; i < 4; i++)
 	{
-		if (i==m_iCurrentSelection)
-			m_pItemBckgndSelected->BlitImage(209,150+i*100);
+		if (i == m_iCurrentSelection)
+			m_pItemBckgndSelected->BlitImage(209, 150 + i * 100);
 		else
-			m_pItemBckgndNormal->BlitImage(209,150+i*100);
+			m_pItemBckgndNormal->BlitImage(209, 150 + i * 100);
 	}
-	
+
 	m_pNewGameText->Draw();
 	m_pResumeGameText->Draw();
 	m_pScoresText->Draw();
 	m_pExitText->Draw();
-
 }
 
 void CMenuState::EnterState()
 {
-	// Checks whether there is a current game active
+	// Revisar si hay un juego actual activo
 	m_iCurrentSelection = 0;
 	if (!m_pCurrentGame || m_pCurrentGame->IsGameOver())
-		m_pResumeGameText->SetTextColor(0.5,0.5,0.5);
+		m_pResumeGameText->SetTextColor(0.5, 0.5, 0.5);
 	else
-		m_pResumeGameText->SetTextColor(1.0,1.0,1.0);
+		m_pResumeGameText->SetTextColor(1.0, 1.0, 1.0);
 }
 
 void CMenuState::SelectionUp()
 {
 	m_iCurrentSelection--;
-	if (m_iCurrentSelection==-1)
+	if (m_iCurrentSelection == -1)
 		m_iCurrentSelection = 3;
 
-	// If there is no current game, we should skip
-	// the "Resume game" item.
-	if (m_iCurrentSelection==1) 
+	if (m_iCurrentSelection == 1)
 	{
 		if (!m_pCurrentGame || m_pCurrentGame->IsGameOver())
 			m_iCurrentSelection--;
@@ -108,12 +153,10 @@ void CMenuState::SelectionUp()
 void CMenuState::SelectionDown()
 {
 	m_iCurrentSelection++;
-	if (m_iCurrentSelection==4)
+	if (m_iCurrentSelection == 4)
 		m_iCurrentSelection = 0;
 
-	// If there is no current game, we should skip
-	// the "Resume game" item.
-	if (m_iCurrentSelection==1) 
+	if (m_iCurrentSelection == 1)
 	{
 		if (!m_pCurrentGame || m_pCurrentGame->IsGameOver())
 			m_iCurrentSelection++;
