@@ -16,7 +16,7 @@ CMenuState::CMenuState(CStateManager* pManager)
 	int screenHeight = 1080;
 
 	// Crear las imágenes del menú
-	m_pBackgroundImg = CImage::CreateImage("Logotetris.png", TRectanglei(0, screenHeight, 0, screenWidth));
+	m_pBackgroundImg = CImage::CreateImage("tetrisprueba.png", TRectanglei(300, 1920, 0, 1080));
 	m_pTitleImg = CImage::CreateImage("Logotetris.png", TRectanglei(0, 300, 0, 500));
 	m_pItemBckgndNormal = CImage::CreateImage("MenuItems.png", TRectanglei(0, 57, 0, 382));
 	m_pItemBckgndSelected = CImage::CreateImage("MenuItems.png", TRectanglei(58, 114, 0, 382));

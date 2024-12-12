@@ -83,6 +83,11 @@ private:
 	int m_iXPos;
 	int m_iYPos;
 
+	float m_fallTime;          // Tiempo inicial de caída en segundos
+	float m_fallAcceleration;  // Aceleración de la caída (reducción en segundos por ciclo)
+	float m_maxFallTime;       // Tiempo de caída mínimo para evitar que las piezas caigan demasiado rápido
+	float m_currentFallTime;
+
 	// The matrix of blocks which are already filled
 	int m_pBlocksMatrix[MATRIX_WIDTH][MATRIX_HEIGHT];
 

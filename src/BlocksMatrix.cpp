@@ -3,26 +3,25 @@
 
 using namespace std;
 
-
-CBlocksMatrix::CBlocksMatrix(CMatrixEventsListener* pListener, int xPos, int yPos) 
-  : m_iXPos(xPos), m_iYPos(yPos), m_pTetrad(NULL),
-    m_bRemovingLine(false), m_iLineBlinkCount(0), m_bLineBlinkOn(false), 
+CBlocksMatrix::CBlocksMatrix(CMatrixEventsListener* pListener, int xPos, int yPos)
+	: m_iXPos(xPos), m_iYPos(yPos), m_pTetrad(NULL),
+	m_bRemovingLine(false), m_iLineBlinkCount(0), m_bLineBlinkOn(false),
 	m_vecLinesRemoved(), m_pListener(pListener), m_iTetradUpdate(1000),
 	m_bGameOver(false)
 {
 	// Load the block images
-	m_pBlockImg[0] = CImage::CreateImage("Block.PNG",TRectanglei(0,BLOCK_HEIGHT,0,BLOCK_WIDTH));
-	m_pBlockImg[1] = CImage::CreateImage("Block.PNG",TRectanglei(0,BLOCK_HEIGHT,BLOCK_WIDTH,2*BLOCK_WIDTH));
-	m_pBlockImg[2] = CImage::CreateImage("Block.PNG",TRectanglei(0,BLOCK_HEIGHT,2*BLOCK_WIDTH,3*BLOCK_WIDTH));
-	m_pBlockImg[3] = CImage::CreateImage("Block.PNG",TRectanglei(0,BLOCK_HEIGHT,3*BLOCK_WIDTH,4*BLOCK_WIDTH));
-	m_pBlockImg[4] = CImage::CreateImage("Block.PNG",TRectanglei(0,BLOCK_HEIGHT,4*BLOCK_WIDTH,5*BLOCK_WIDTH));
-	m_pBlockImg[5] = CImage::CreateImage("Block.PNG",TRectanglei(BLOCK_HEIGHT,2*BLOCK_HEIGHT,0,BLOCK_WIDTH));
-	m_pBlockImg[6] = CImage::CreateImage("Block.PNG",TRectanglei(BLOCK_HEIGHT,2*BLOCK_HEIGHT,BLOCK_WIDTH,2*BLOCK_WIDTH));
+	m_pBlockImg[0] = CImage::CreateImage("Block.PNG", TRectanglei(0, BLOCK_HEIGHT, 0, BLOCK_WIDTH));
+	m_pBlockImg[1] = CImage::CreateImage("Block.PNG", TRectanglei(0, BLOCK_HEIGHT, BLOCK_WIDTH, 2 * BLOCK_WIDTH));
+	m_pBlockImg[2] = CImage::CreateImage("Block.PNG", TRectanglei(0, BLOCK_HEIGHT, 2 * BLOCK_WIDTH, 3 * BLOCK_WIDTH));
+	m_pBlockImg[3] = CImage::CreateImage("Block.PNG", TRectanglei(0, BLOCK_HEIGHT, 3 * BLOCK_WIDTH, 4 * BLOCK_WIDTH));
+	m_pBlockImg[4] = CImage::CreateImage("Block.PNG", TRectanglei(0, BLOCK_HEIGHT, 4 * BLOCK_WIDTH, 5 * BLOCK_WIDTH));
+	m_pBlockImg[5] = CImage::CreateImage("Block.PNG", TRectanglei(BLOCK_HEIGHT, 2 * BLOCK_HEIGHT, 0, BLOCK_WIDTH));
+	m_pBlockImg[6] = CImage::CreateImage("Block.PNG", TRectanglei(BLOCK_HEIGHT, 2 * BLOCK_HEIGHT, BLOCK_WIDTH, 2 * BLOCK_WIDTH));
 
 	// Initialize the matrix
-	for (int i=0; i<MATRIX_WIDTH;i++)
+	for (int i = 0; i < MATRIX_WIDTH; i++)
 	{
-		for (int j=0; j<MATRIX_HEIGHT;j++)
+		for (int j = 0; j < MATRIX_HEIGHT; j++)
 		{
 			m_pBlocksMatrix[i][j] = bcNone;
 		}
@@ -32,6 +31,12 @@ CBlocksMatrix::CBlocksMatrix(CMatrixEventsListener* pListener, int xPos, int yPo
 	m_pTetrad = m_TetradFactory.CreateTetrad(this);
 	m_pNextShape = m_TetradFactory.CreateTetrad(this);
 	m_dwLastShapeDown = GetCurrentTime();
+
+	// Variables for accelerating the falling speed of the pieces
+	m_fallTime = 1.0f;  // Initial fall time in seconds
+	m_fallAcceleration = 0.05f;  // Acceleration of the fall (time reduction per cycle)
+	m_maxFallTime = 0.1f;  // Minimum fall time to prevent it from getting too fast
+	m_currentFallTime = 0.0f;  // Accumulator for the elapsed time
 }
 
 CBlocksMatrix::~CBlocksMatrix()
@@ -40,9 +45,9 @@ CBlocksMatrix::~CBlocksMatrix()
 
 void CBlocksMatrix::Reset()
 {
-	for (int i=0; i<MATRIX_WIDTH;i++)
+	for (int i = 0; i < MATRIX_WIDTH; i++)
 	{
-		for (int j=0; j<MATRIX_HEIGHT;j++)
+		for (int j = 0; j < MATRIX_HEIGHT; j++)
 		{
 			m_pBlocksMatrix[i][j] = bcNone;
 		}
@@ -54,7 +59,7 @@ void CBlocksMatrix::Reset()
 	m_pNextShape = m_TetradFactory.CreateTetrad(this);
 	m_dwLastShapeDown = GetCurrentTime();
 
-    m_bRemovingLine = m_bLineBlinkOn = false; 
+	m_bRemovingLine = m_bLineBlinkOn = false;
 	m_iLineBlinkCount = 0;
 	m_vecLinesRemoved.clear();
 	m_iTetradUpdate = 1000;
@@ -63,26 +68,26 @@ void CBlocksMatrix::Reset()
 
 void CBlocksMatrix::Draw()
 {
-	int iBlockX=0, iBlockY=0;
+	int iBlockX = 0, iBlockY = 0;
 	// If some lines are currently being removed,
 	// We shouldn't draw them all.
 	if (m_bRemovingLine)
 	{
-		for (int j=0; j<MATRIX_HEIGHT;j++)
+		for (int j = 0; j < MATRIX_HEIGHT; j++)
 		{
 			// Don't draw the line if it is being removed and blinking off
 			if (IsLineRemoved(j) && !m_bLineBlinkOn)
 				continue;
 
 			// Else draw the line
-			for (int i=0; i<MATRIX_WIDTH;i++)
+			for (int i = 0; i < MATRIX_WIDTH; i++)
 			{
 				if (m_pBlocksMatrix[i][j])
 				{
-					int color = m_pBlocksMatrix[i][j]-1;
+					int color = m_pBlocksMatrix[i][j] - 1;
 					GetScreenPosFromCell(i, j, iBlockX, iBlockY);
 					m_pBlockImg[color]->BlitImage(iBlockX, iBlockY);
-				}			
+				}
 			}
 		}
 
@@ -103,16 +108,16 @@ void CBlocksMatrix::Draw()
 			NewShape();
 		}
 	}
-	else 
+	else
 	{
 		// Draw filled blocks
-		for (int j=0; j<MATRIX_HEIGHT;j++)
+		for (int j = 0; j < MATRIX_HEIGHT; j++)
 		{
-			for (int i=0; i<MATRIX_WIDTH;i++)
+			for (int i = 0; i < MATRIX_WIDTH; i++)
 			{
 				if (m_pBlocksMatrix[i][j])
 				{
-					int color = m_pBlocksMatrix[i][j]-1;
+					int color = m_pBlocksMatrix[i][j] - 1;
 					GetScreenPosFromCell(i, j, iBlockX, iBlockY);
 					m_pBlockImg[color]->BlitImage(iBlockX, iBlockY);
 				}
@@ -123,16 +128,32 @@ void CBlocksMatrix::Draw()
 		if (!m_bGameOver)
 			m_pTetrad->Draw();
 	}
-
 }
 
 void CBlocksMatrix::Update(DWORD dwCurrentTime)
 {
 	if (!m_bGameOver)
 	{
-		// Check if the current shape should be moved down
-		if (dwCurrentTime > m_dwLastShapeDown+m_iTetradUpdate)
-			ShapeDown();
+		// Comprobamos si es hora de mover la pieza hacia abajo
+		if (dwCurrentTime > m_dwLastShapeDown + m_iTetradUpdate)
+		{
+			// Actualizamos el tiempo de caída para acelerar las piezas
+			m_currentFallTime += (dwCurrentTime - m_dwLastShapeDown) / 1000.0f;
+			if (m_currentFallTime >= m_fallTime)
+			{
+				ShapeDown();  // Mover la pieza hacia abajo
+				m_currentFallTime = 0.0f;  // Resetear el acumulador de tiempo
+
+				// Reducir el tiempo de caída (acelerar)
+				m_fallTime -= m_fallAcceleration;
+
+				// Asegurarnos de que el tiempo de caída no sea menor que el mínimo
+				if (m_fallTime < m_maxFallTime)
+				{
+					m_fallTime = m_maxFallTime;
+				}
+			}
+		}
 	}
 }
 
@@ -156,9 +177,9 @@ void CBlocksMatrix::ShapeDown()
 		// we ask it to fill the matrix.
 		m_pTetrad->FillMatrix();
 		// Then delete the current shape
-		delete m_pTetrad;	
+		delete m_pTetrad;
 		m_pTetrad = NULL;
-		
+
 		// We then check if no lines have been completed
 		// and create the next shape. The m_bGameOver flag
 		// can be set in this NewShape function.

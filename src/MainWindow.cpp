@@ -17,11 +17,13 @@ CMainWindow::CMainWindow(int iWidth, int iHeight, bool bFullScreen)
 
 	RECT WindowRect;
 	WindowRect.top = WindowRect.left = 0;
-	WindowRect.right = iWidth;
-	WindowRect.bottom = iHeight;
+
+	// Cambiar el tamaño de la ventana aquí
+	WindowRect.right = 1070;  // Cambia el valor de 1280 por el ancho que desees
+	WindowRect.bottom = 845;  // Cambia el valor de 720 por la altura que desees
 
 	DWORD dwExStyle = 0;
-	DWORD dwStyle = 0;
+	DWORD dwStyle = (WS_OVERLAPPEDWINDOW & ~WS_SIZEBOX) & ~WS_MAXIMIZEBOX;  // Quitamos la posibilidad de redimensionar y el botón de maximizar
 
 	if (m_bFullScreen)
 	{
@@ -36,7 +38,7 @@ CMainWindow::CMainWindow(int iWidth, int iHeight, bool bFullScreen)
 		if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN)
 			!= DISP_CHANGE_SUCCESSFUL)
 		{
-			throw CException("Unable to swith to fullscreen mode");
+			throw CException("Unable to switch to fullscreen mode");
 		}
 
 		dwExStyle = WS_EX_APPWINDOW;
@@ -46,12 +48,12 @@ CMainWindow::CMainWindow(int iWidth, int iHeight, bool bFullScreen)
 	else
 	{
 		dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-		dwStyle = WS_OVERLAPPEDWINDOW;
+		// Ya no modificamos el dwStyle aquí porque está definido arriba como sin redimensionar y sin maximizar.
 	}
 
 	AdjustWindowRectEx(&WindowRect, dwStyle, FALSE, dwExStyle);
 	m_hWindow = CreateWindowEx(dwExStyle, TEXT(WINDOW_CLASSNAME),
-		TEXT("TetroGL"),
+		TEXT("TetrisStevenVasquez"),
 		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | dwStyle,
 		0, 0, WindowRect.right - WindowRect.left,
 		WindowRect.bottom - WindowRect.top,
@@ -61,10 +63,23 @@ CMainWindow::CMainWindow(int iWidth, int iHeight, bool bFullScreen)
 	if (m_hWindow == NULL)
 		throw CException("Cannot create the main window");
 
+	// Centrar la ventana
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);  // Obtener el ancho de la pantalla
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN); // Obtener la altura de la pantalla
+
+	// Calcular la posición para centrar la ventana
+	int windowWidth = WindowRect.right - WindowRect.left;
+	int windowHeight = WindowRect.bottom - WindowRect.top;
+	int xPos = (screenWidth - windowWidth) / 2;
+	int yPos = (screenHeight - windowHeight) / 2;
+
+	// Establecer la posición de la ventana
+	SetWindowPos(m_hWindow, HWND_TOP, xPos, yPos, 0, 0, SWP_NOSIZE);
+
 	CreateContext();
 	InitGL();
 	ShowWindow(m_hWindow, SW_SHOW);
-	OnSize(iWidth, iHeight);
+	OnSize(WindowRect.right - WindowRect.left, WindowRect.bottom - WindowRect.top);
 
 	CGameFont::SetDeviceContext(m_hDeviceContext);
 
