@@ -12,11 +12,11 @@ CHighScoreState::CHighScoreState(CStateManager* pManager)
     m_pFont(NULL), m_iNameIndex(0), m_vecHighScores()
 {
 	m_pFont = new CGameFont;
-	m_pFont->CreateFont("Verdana", 20, FW_NORMAL);
+	m_pFont->CreateFont("Times New Roman", 30, FW_NORMAL);
 	m_pCurrentName[0] = '\0';
 
-	m_pBackgroundImg = CImage::CreateImage("MainBackground.png",TRectanglei(0,600,0,800));
-	m_pTitleImg = CImage::CreateImage("ScoresTitle.png",TRectanglei(0,600,0,800));
+	m_pBackgroundImg = CImage::CreateImage("tetrisscorest1.jpg",TRectanglei(0, 1070, 0, 1080));
+	m_pTitleImg = CImage::CreateImage("Vintage1.png",TRectanglei(0,125,0,350));
 	
 	m_pEntriesBckgndImg = CImage::CreateImage("HighScoreItems.png",TRectanglei(70,99,0,600));
 	m_pEnterNameImg = CImage::CreateImage("HighScoreItems.png",TRectanglei(0,39,0,150));
