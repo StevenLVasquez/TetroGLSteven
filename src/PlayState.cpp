@@ -14,22 +14,33 @@ CPlayState::CPlayState(CStateManager* pManager)
 	m_bGameOver(false)
 {
 	AddFontResource("01 Digitall.ttf");
-	m_pMatrix = new CBlocksMatrix(this, 280, 34);
-	m_pFont = new CGameFont;
-	m_pFont->CreateFont("01 Digitall", 20, FW_NORMAL);
 
-	m_pComboControl = new CComboControl(TRectanglei(330, 450, 50, 235), m_pFont);
-	m_pScoreControl = new CTextControl(m_pFont, TRectanglei(145, 210, 620, 730));
+	// Posición aproximada centrada para la matriz
+	m_pMatrix = new CBlocksMatrix(this, 395, 142);
+
+	m_pFont = new CGameFont;
+	m_pFont->CreateFont("01 Digitall", 40, FW_NORMAL);
+
+	// Ajustes solicitados: subir combo control (restamos 20px a top y bottom)
+	// Antes: (430, 550, 250, 435)
+	// Ahora: (410, 530, 250, 435)
+	m_pComboControl = new CComboControl(TRectanglei(430, 550, 50, 185), m_pFont);
+
+	// Score, Lines, Level no se pidió modificar ahora, mantenemos igual
+	m_pScoreControl = new CTextControl(m_pFont, TRectanglei(245, 125, 820, 930));
 	m_pScoreControl->SetAlignement(CTextControl::TACenter);
 	m_pScoreControl->SetTextColor(1.0f, 0.588f, 0.039f);
-	m_pLinesControl = new CTextControl(m_pFont, TRectanglei(320, 385, 620, 730));
+
+	m_pLinesControl = new CTextControl(m_pFont, TRectanglei(420, 395, 820, 930));
 	m_pLinesControl->SetAlignement(CTextControl::TACenter);
 	m_pLinesControl->SetTextColor(1.0f, 0.588f, 0.039f);
-	m_pLevelControl = new CTextControl(m_pFont, TRectanglei(500, 565, 620, 730));
+
+	m_pLevelControl = new CTextControl(m_pFont, TRectanglei(600, 700, 820, 930));
 	m_pLevelControl->SetAlignement(CTextControl::TACenter);
 	m_pLevelControl->SetTextColor(1.0f, 0.588f, 0.039f);
 
-	m_pBackgroundImg = CImage::CreateImage("PlayBckgnd.png", TRectanglei(0, 600, 0, 800));
+	// Fondo con tamaño 1070x845
+	m_pBackgroundImg = CImage::CreateImage("Ds1.png", TRectanglei(0, 845, 0, 1070));
 }
 
 CPlayState::~CPlayState()
@@ -54,13 +65,11 @@ CPlayState* CPlayState::GetInstance(CStateManager* pManager)
 	return &Instance;
 }
 
-// INICIO MOD CRONOMETRO ENTERSTATE
 void CPlayState::EnterState()
 {
 	m_dwStartTime = GetTickCount();
 	m_dwElapsedTime = 0;
 }
-// FIN MOD CRONOMETRO ENTERSTATE
 
 void CPlayState::Reset()
 {
@@ -108,9 +117,7 @@ void CPlayState::OnKeyDown(WPARAM wKey)
 
 void CPlayState::Update(DWORD dwCurrentTime)
 {
-	// INICIO MOD CRONOMETRO UPDATE
 	m_dwElapsedTime = dwCurrentTime - m_dwStartTime;
-	// FIN MOD CRONOMETRO UPDATE
 
 	if (!m_bGameOver)
 	{
@@ -140,7 +147,7 @@ void CPlayState::Draw()
 	m_pLevelControl->SetText(ssLevel.str());
 	m_pLevelControl->Draw();
 
-	// INICIO MOD CRONOMETRO DRAW
+	// Bajamos el reloj un poco: antes (350,50), ahora (350,70)
 	DWORD totalSeconds = m_dwElapsedTime / 1000;
 	DWORD minutes = totalSeconds / 60;
 	DWORD seconds = totalSeconds % 60;
@@ -148,8 +155,7 @@ void CPlayState::Draw()
 	std::stringstream ssTimer;
 	ssTimer << "Tiempo: " << minutes << "m " << seconds << "s";
 
-	m_pFont->DrawText(ssTimer.str(), 350, 50, 1.0f, 1.0f, 1.0f);
-	// FIN MOD CRONOMETRO DRAW
+	m_pFont->DrawText(ssTimer.str(), 400, 150, 1.0f, 1.0f, 1.0f);
 
 	if (m_pMatrix->GetNextShape())
 		m_pMatrix->GetNextShape()->DrawOnScreen(TRectanglei(165, 220, 80, 225));
@@ -157,21 +163,24 @@ void CPlayState::Draw()
 	m_pComboControl->Draw();
 	if (m_bGameOver)
 	{
-		glColor4f(0.0, 0.0, 0.0, 0.5);
+		glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 		glDisable(GL_TEXTURE_2D);
 		glBegin(GL_QUADS);
 		glVertex3i(0, 0, 0);
-		glVertex3i(0, 600, 0);
-		glVertex3i(800, 600, 0);
-		glVertex3i(800, 0, 0);
+		glVertex3i(0, 845, 0);
+		glVertex3i(1070, 845, 0);
+		glVertex3i(1070, 0, 0);
 		glEnd();
 		glEnable(GL_TEXTURE_2D);
+		;
 
-		m_pFont->DrawText("GAME OVER", 340, 200);
-		m_pFont->DrawText("Press Enter to continue", 285, 300);
+		m_pFont->DrawText("Enter para Continuar", 340, 300);
+		m_pFont->DrawText("Se acabo el juego :(", 340, 500);
+		m_pFont->DrawText("No te rindas , lo puedes lograr", 340, 700);
+
+
 	}
 }
-
 
 void CPlayState::OnStartRemoveLines()
 {

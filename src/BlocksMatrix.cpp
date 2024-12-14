@@ -35,7 +35,7 @@ CBlocksMatrix::CBlocksMatrix(CMatrixEventsListener* pListener, int xPos, int yPo
 	// Variables for accelerating the falling speed of the pieces
 	m_fallTime = 1.0f;  // Initial fall time in seconds
 	m_fallAcceleration = 0.05f;  // Acceleration of the fall (time reduction per cycle)
-	m_maxFallTime = 0.1f;  // Minimum fall time to prevent it from getting too fast
+	m_maxFallTime = 0.9f;  // Minimum fall time to prevent it from getting too fast
 	m_currentFallTime = 0.0f;  // Accumulator for the elapsed time
 }
 
